@@ -37,7 +37,6 @@
     overflow: hidden;
   }
 
-  /* ── HEADER ── */
   header {
     grid-column: 1 / -1;
     display: flex;
@@ -50,15 +49,8 @@
     z-index: 10;
   }
 
-  .logo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .logo-icon {
-    width: 28px; height: 28px;
-    position: relative;
-  }
+  .logo { display: flex; align-items: center; gap: 10px; }
+  .logo-icon { width: 28px; height: 28px; position: relative; }
   .logo-icon svg { width: 100%; height: 100%; }
   .logo-text {
     font-family: 'Syne', sans-serif;
@@ -78,10 +70,7 @@
     box-shadow: 0 0 8px var(--accent3);
     animation: pulse 2s infinite;
   }
-  @keyframes pulse {
-    0%,100% { opacity: 1; }
-    50% { opacity: 0.4; }
-  }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
   .status-label { font-size: 11px; color: var(--muted); letter-spacing: 0.06em; }
 
   .header-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
@@ -107,12 +96,8 @@
     letter-spacing: 0.06em;
     transition: all 0.2s;
   }
-  .btn-load-graph:hover {
-    background: var(--accent);
-    color: var(--bg);
-  }
+  .btn-load-graph:hover { background: var(--accent); color: var(--bg); }
 
-  /* ── SIDEBAR ── */
   aside {
     background: var(--surface);
     border-right: 1px solid var(--border);
@@ -131,7 +116,6 @@
     background: var(--surface2);
   }
 
-  /* Query box */
   .query-section { padding: 16px; border-bottom: 1px solid var(--border); }
 
   .query-wrap {
@@ -187,16 +171,13 @@
   .btn-run:active { transform: translateY(0); }
   .btn-run:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 
-  /* SQL box */
   .sql-section { padding: 16px; border-bottom: 1px solid var(--border); }
   .sql-label {
     font-size: 9px; letter-spacing: 0.14em; color: var(--muted);
     text-transform: uppercase; margin-bottom: 8px;
     display: flex; align-items: center; gap: 8px;
   }
-  .sql-label::after {
-    content: ''; flex: 1; height: 1px; background: var(--border);
-  }
+  .sql-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
   .sql-box {
     background: var(--bg);
     border: 1px solid var(--border);
@@ -211,185 +192,89 @@
   }
   .sql-box.empty { color: var(--muted); font-style: italic; }
 
-  /* Results */
-  .results-section {
-    flex: 1;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-  }
+  .results-section { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
 
-  .results-inner {
-    flex: 1;
-    overflow-y: auto;
-    padding: 12px;
-  }
-
-  /* scrollbar */
+  .results-inner { flex: 1; overflow-y: auto; padding: 12px; }
   .results-inner::-webkit-scrollbar { width: 4px; }
   .results-inner::-webkit-scrollbar-track { background: transparent; }
   .results-inner::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 
-  .result-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 11px;
-  }
+  .result-table { width: 100%; border-collapse: collapse; font-size: 11px; }
   .result-table th {
-    text-align: left;
-    padding: 6px 8px;
-    color: var(--muted);
-    border-bottom: 1px solid var(--border);
-    font-weight: 500;
-    letter-spacing: 0.06em;
-    font-size: 10px;
-    text-transform: uppercase;
+    text-align: left; padding: 6px 8px; color: var(--muted);
+    border-bottom: 1px solid var(--border); font-weight: 500;
+    letter-spacing: 0.06em; font-size: 10px; text-transform: uppercase;
   }
-  .result-table td {
-    padding: 6px 8px;
-    border-bottom: 1px solid rgba(30,45,69,0.5);
-    color: var(--text);
-  }
+  .result-table td { padding: 6px 8px; border-bottom: 1px solid rgba(30,45,69,0.5); color: var(--text); }
   .result-table tr:hover td { background: var(--surface2); }
 
   .result-msg {
-    font-size: 12px;
-    padding: 12px;
-    border-radius: 6px;
+    font-size: 12px; padding: 12px; border-radius: 6px;
   }
   .result-msg.error { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); color: #fca5a5; }
   .result-msg.warn { background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2); color: #fcd34d; }
   .result-msg.info { background: rgba(0,212,255,0.06); border: 1px solid rgba(0,212,255,0.15); color: var(--accent); }
 
-  .highlight-pill {
-    display: inline-block;
-    background: rgba(0,212,255,0.1);
-    border: 1px solid rgba(0,212,255,0.3);
-    color: var(--accent);
-    font-size: 10px;
-    padding: 2px 8px;
-    border-radius: 99px;
-    margin: 2px;
-  }
-
   .empty-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    gap: 8px;
-    color: var(--muted);
-    font-size: 11px;
-    letter-spacing: 0.04em;
-    text-align: center;
-    padding: 24px;
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; height: 100%; gap: 8px;
+    color: var(--muted); font-size: 11px; letter-spacing: 0.04em;
+    text-align: center; padding: 24px;
   }
   .empty-state svg { opacity: 0.2; margin-bottom: 8px; }
 
-  /* ── GRAPH CANVAS ── */
-  .graph-area {
-    position: relative;
-    background: var(--bg);
-    overflow: hidden;
-  }
-
-  #graph-svg {
-    width: 100%;
-    height: 100%;
-  }
+  .graph-area { position: relative; background: var(--bg); overflow: hidden; }
+  #graph-svg { width: 100%; height: 100%; }
 
   .graph-empty {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    color: var(--muted);
-    font-size: 12px;
-    letter-spacing: 0.06em;
-    pointer-events: none;
+    position: absolute; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 12px;
+    color: var(--muted); font-size: 12px; letter-spacing: 0.06em; pointer-events: none;
   }
   .graph-empty svg { opacity: 0.12; }
 
-  /* Grid overlay */
   .graph-area::before {
-    content: '';
-    position: absolute;
-    inset: 0;
+    content: ''; position: absolute; inset: 0;
     background-image:
       linear-gradient(var(--border) 1px, transparent 1px),
       linear-gradient(90deg, var(--border) 1px, transparent 1px);
-    background-size: 40px 40px;
-    opacity: 0.3;
-    pointer-events: none;
+    background-size: 40px 40px; opacity: 0.3; pointer-events: none;
   }
 
-  /* Graph controls */
   .graph-controls {
-    position: absolute;
-    bottom: 16px;
-    right: 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    z-index: 5;
+    position: absolute; bottom: 16px; right: 16px;
+    display: flex; flex-direction: column; gap: 4px; z-index: 5;
   }
   .gc-btn {
-    width: 32px; height: 32px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    color: var(--text);
-    border-radius: 6px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-    transition: all 0.15s;
-    font-family: 'JetBrains Mono', monospace;
+    width: 32px; height: 32px; background: var(--surface);
+    border: 1px solid var(--border); color: var(--text);
+    border-radius: 6px; cursor: pointer; display: flex;
+    align-items: center; justify-content: center; font-size: 16px;
+    transition: all 0.15s; font-family: 'JetBrains Mono', monospace;
   }
   .gc-btn:hover { border-color: var(--accent); color: var(--accent); }
 
-  /* Graph legend */
   .graph-legend {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    background: rgba(14,20,32,0.85);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 10px 14px;
-    font-size: 10px;
-    z-index: 5;
-    backdrop-filter: blur(6px);
+    position: absolute; top: 12px; right: 12px;
+    background: rgba(14,20,32,0.85); border: 1px solid var(--border);
+    border-radius: 6px; padding: 10px 14px; font-size: 10px;
+    z-index: 5; backdrop-filter: blur(6px);
   }
   .legend-title { color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px; }
   .legend-item { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; color: var(--text); }
   .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
 
-  /* Node tooltip */
   .tooltip {
-    position: absolute;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 8px 12px;
-    font-size: 11px;
-    pointer-events: none;
-    z-index: 20;
-    opacity: 0;
-    transition: opacity 0.15s;
-    max-width: 200px;
-    word-break: break-all;
+    position: absolute; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 6px;
+    padding: 8px 12px; font-size: 11px; pointer-events: none;
+    z-index: 20; opacity: 0; transition: opacity 0.15s;
+    max-width: 200px; word-break: break-all;
   }
   .tooltip.visible { opacity: 1; }
   .tooltip-id { color: var(--accent); font-weight: 700; margin-bottom: 2px; }
   .tooltip-label { color: var(--muted); }
 
-  /* Loading spinner */
   .spinner {
     width: 16px; height: 16px;
     border: 2px solid rgba(0,212,255,0.2);
@@ -400,7 +285,6 @@
   }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* Animate in */
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(8px); }
     to   { opacity: 1; transform: translateY(0); }
@@ -408,15 +292,9 @@
   .fade-up { animation: fadeUp 0.3s ease both; }
 
   .node-count {
-    position: absolute;
-    top: 12px;
-    left: 12px;
-    font-size: 10px;
-    color: var(--muted);
-    letter-spacing: 0.08em;
-    z-index: 5;
-    display: flex;
-    gap: 12px;
+    position: absolute; top: 12px; left: 12px;
+    font-size: 10px; color: var(--muted); letter-spacing: 0.08em;
+    z-index: 5; display: flex; gap: 12px;
   }
   .nc-item { display: flex; align-items: center; gap: 6px; }
   .nc-val { color: var(--text); font-weight: 700; }
@@ -424,7 +302,6 @@
 </head>
 <body>
 
-<!-- HEADER -->
 <header>
   <div class="logo">
     <div class="logo-icon">
@@ -441,21 +318,19 @@
   </div>
   <div class="header-sep"></div>
   <div class="status-dot"></div>
-  <span class="status-label">LIVE · 127.0.0.1:8001</span>
+  <span class="status-label">LIVE · graph-query-system-57g8.onrender.com</span>
   <div class="header-right">
     <span class="api-badge">REST API</span>
     <button class="btn-load-graph" onclick="loadGraph()">↻ LOAD GRAPH</button>
   </div>
 </header>
 
-<!-- SIDEBAR -->
 <aside>
   <div class="panel-label">Natural Language Query</div>
 
-  <!-- Query input -->
   <div class="query-section">
     <div class="query-wrap">
-      <textarea id="queryInput" placeholder="e.g. Show all nodes connected to entity A..." rows="4" oninput="updateCount()"></textarea>
+      <textarea id="queryInput" placeholder="e.g. Show sales orders with their materials..." rows="4" oninput="updateCount()"></textarea>
       <div class="query-footer">
         <span class="char-count" id="charCount">0 chars</span>
         <button class="btn-run" id="runBtn" onclick="runQuery()">
@@ -465,13 +340,11 @@
     </div>
   </div>
 
-  <!-- Generated SQL -->
   <div class="sql-section">
     <div class="sql-label">Generated SQL</div>
     <div class="sql-box empty" id="sqlBox">Awaiting query...</div>
   </div>
 
-  <!-- Results -->
   <div class="results-section">
     <div class="panel-label">Results</div>
     <div class="results-inner" id="resultsInner">
@@ -489,7 +362,6 @@
   </div>
 </aside>
 
-<!-- GRAPH AREA -->
 <div class="graph-area" id="graphArea">
   <div class="graph-empty" id="graphEmpty">
     <svg width="72" height="72" viewBox="0 0 72 72" fill="none">
@@ -530,18 +402,18 @@
 </div>
 
 <script>
-const API = 'http://127.0.0.1:8001';
+// ✅ UPDATED: points to live Render backend
+const API = 'https://graph-query-system-57g8.onrender.com';
+
 let simulation, svgEl, zoomBehavior, gEl;
 let graphNodes = [], graphLinks = [];
 let highlightSet = new Set();
 
-// ── CHAR COUNT ──
 function updateCount() {
   const v = document.getElementById('queryInput').value;
   document.getElementById('charCount').textContent = v.length + ' chars';
 }
 
-// ── LOAD GRAPH ──
 async function loadGraph() {
   const btn = document.querySelector('.btn-load-graph');
   btn.textContent = '⟳ Loading...';
@@ -558,7 +430,6 @@ async function loadGraph() {
   }
 }
 
-// ── RUN QUERY ──
 async function runQuery() {
   const q = document.getElementById('queryInput').value.trim();
   if (!q) return;
@@ -590,7 +461,6 @@ async function runQuery() {
 }
 
 function handleQueryResult(data) {
-  // SQL
   const sqlBox = document.getElementById('sqlBox');
   if (data.sql) {
     sqlBox.textContent = data.sql;
@@ -600,13 +470,11 @@ function handleQueryResult(data) {
     sqlBox.classList.add('empty');
   }
 
-  // If plain message (guardrail or error)
   if (!data.columns && data.response) {
     showResultMsg(data.response, data.response.toLowerCase().includes('only') ? 'warn' : 'info');
     return;
   }
 
-  // Highlights
   highlightSet = new Set(data.highlight_nodes || []);
   applyHighlights();
 
@@ -619,7 +487,6 @@ function handleQueryResult(data) {
     hCount.style.display = 'none';
   }
 
-  // Table
   if (data.columns && data.result) {
     renderTable(data.columns, data.result);
   } else {
@@ -654,10 +521,7 @@ function escapeHtml(s) {
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
-// ── GRAPH RENDER ──
 function renderGraph(data) {
-  // Expect { nodes: [{id, label, ...}], edges: [{source, target, ...}] }
-  // or { nodes: [...], links: [...] }
   const nodes = data.nodes || [];
   const links = data.edges || data.links || [];
 
@@ -684,7 +548,6 @@ function renderGraph(data) {
 
   gEl = svgEl.append('g');
 
-  // Arrow marker
   svgEl.append('defs').append('marker')
     .attr('id', 'arrowhead')
     .attr('viewBox', '-0 -5 10 10')
@@ -697,14 +560,12 @@ function renderGraph(data) {
     .attr('d', 'M 0,-5 L 10,0 L 0,5')
     .attr('fill', '#2d5a8e');
 
-  // Links
   const link = gEl.append('g').selectAll('line')
     .data(links).enter().append('line')
     .attr('stroke', '#1e2d45')
     .attr('stroke-width', 1.5)
     .attr('marker-end', 'url(#arrowhead)');
 
-  // Nodes
   const node = gEl.append('g').selectAll('g')
     .data(nodes).enter().append('g')
     .attr('class', 'node-g')
@@ -729,7 +590,6 @@ function renderGraph(data) {
     .attr('font-size', '8px')
     .text(d => String(d.label || d.id || '').slice(0, 6));
 
-  // Tooltip
   const tooltip = document.getElementById('tooltip');
   node.on('mouseover', function(event, d) {
     tooltip.classList.add('visible');
@@ -743,7 +603,6 @@ function renderGraph(data) {
     tooltip.classList.remove('visible');
   });
 
-  // Simulation
   simulation = d3.forceSimulation(nodes)
     .force('link', d3.forceLink(links).id(d => d.id).distance(80))
     .force('charge', d3.forceManyBody().strength(-200))
@@ -765,7 +624,6 @@ function applyHighlights() {
     .style('filter', d => highlightSet.has(d.id) ? 'drop-shadow(0 0 8px #00d4ffaa)' : 'none');
 }
 
-// Drag
 function dragStart(event, d) {
   if (!event.active) simulation.alphaTarget(0.3).restart();
   d.fx = d.x; d.fy = d.y;
@@ -776,14 +634,12 @@ function dragEnd(event, d) {
   d.fx = null; d.fy = null;
 }
 
-// Zoom controls
 function zoomIn() { svgEl.transition().call(zoomBehavior.scaleBy, 1.4); }
 function zoomOut() { svgEl.transition().call(zoomBehavior.scaleBy, 0.7); }
 function resetZoom() {
   svgEl.transition().call(zoomBehavior.transform, d3.zoomIdentity);
 }
 
-// Enter key
 document.getElementById('queryInput').addEventListener('keydown', e => {
   if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) runQuery();
 });
