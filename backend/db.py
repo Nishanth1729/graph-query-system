@@ -1,6 +1,7 @@
 import sqlite3
+import os
 
-DB_PATH = "data/data.db"
+DB_PATH = os.path.join(os.path.dirname(__file__), "supply_chain.db")
 
 def run_query(sql):
     conn = sqlite3.connect(DB_PATH)

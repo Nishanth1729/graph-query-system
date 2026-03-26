@@ -2,10 +2,10 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.db import run_query
-from backend.guardrails import is_domain_query, is_safe_sql
-from backend.graph import build_graph, extract_ids
-from backend.llm import generate_sql
+from db import run_query
+from guardrails import is_domain_query, is_safe_sql
+from graph import build_graph, extract_ids
+from llm import generate_sql
 
 app = FastAPI()
 
@@ -33,7 +33,6 @@ def graph():
     return build_graph()
 
 
-# 🔥 CLEAN FUNCTION (INSIDE FILE, BEFORE USE)
 def clean_value(v):
     try:
         if isinstance(v, str) and v.startswith("{"):
@@ -60,27 +59,23 @@ def query(q: Query):
 
     print("\n👉 USER QUERY:", user_query)
 
-    # Guardrail
     if not is_domain_query(user_query):
         return {"response": "Only dataset-related queries allowed"}
 
-    # 🔥 Generate SQL (rule-based)
     sql = generate_sql(user_query)
 
     if not sql:
         print("⚠️ Using fallback SQL")
-        sql = "SELECT * FROM deliveries LIMIT 10;"
+        sql = "SELECT * FROM sales_order_headers LIMIT 10;"
 
     if not is_safe_sql(sql):
         return {"response": "Unsafe SQL detected"}
 
-    # Run query
     cols, res = run_query(sql)
 
     if cols is None:
         return {"response": res}
 
-    # 🔥 CLEAN DATA HERE (IMPORTANT)
     cleaned_rows = [
         [clean_value(v) for v in row]
         for row in res

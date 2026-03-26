@@ -1,92 +1,61 @@
-import sqlite3
-import pandas as pd
-import os
 import json
+import sqlite3
+import glob
+import os
 
-BASE_PATH = "data/sap-o2c-data"
-conn = sqlite3.connect("data/data.db")
-
-
-def rename_columns(df):
-    column_map = {
-        "sales_document": "order_id",
-        "sold_to_party": "customer_id",
-        "delivery_document": "delivery_id",
-        "billing_document": "invoice_id",
-        "material": "product_id",
-        "reference_document": "reference_document"
-    }
-    df.rename(columns=column_map, inplace=True)
-    return df
-
-
-def clean_dataframe(df):
-    for col in df.columns:
-        df[col] = df[col].apply(
-            lambda x: json.dumps(x) if isinstance(x, (dict, list)) else x
-        )
-    return df
-
-
-def load_folder(folder_name, table_name):
-    folder_path = os.path.join(BASE_PATH, folder_name)
-
-    print(f"\nChecking {folder_name}")
-
-    if not os.path.exists(folder_path):
-        print("❌ Missing folder")
-        return
-
-    files = []
-    for root, dirs, filenames in os.walk(folder_path):
-        for file in filenames:
-            if file.lower().endswith(".jsonl"):
-                files.append(os.path.join(root, file))
-
-    if not files:
-        print("❌ No JSONL files found")
-        return
-
-    df_list = []
-
-    for path in files:
-        print(f"📄 Loading: {path}")
-
-        data = []
-        with open(path, "r", encoding="utf-8") as f:
-            for line in f:
-                data.append(json.loads(line))
-
-        df = pd.DataFrame(data)
-        df.columns = df.columns.str.lower()
-
-        df = rename_columns(df)
-        df_list.append(df)
-
-    final_df = pd.concat(df_list, ignore_index=True)
-
-    # 🔥 CLEAN NESTED DATA
-    final_df = clean_dataframe(final_df)
-
-    print(f"✅ Loaded {table_name} ({len(final_df)} rows)")
-
-    final_df.to_sql(table_name, conn, if_exists="replace", index=False)
-
+DB = "supply_chain.db"
+DATA_DIR = r"C:\Users\pnred\Dodge AI\graph-query-system\data\sap-o2c-data"
 
 TABLE_MAP = {
-    "sales_order_headers": "orders",
-    "sales_order_items": "order_items",
-    "outbound_delivery_headers": "deliveries",
-    "billing_document_headers": "invoices",
-    "payments_accounts_receivable": "payments",
-    "products": "products",
-    "business_partners": "customers"
+    "sales_order_headers":          "sales_order_headers",
+    "sales_order_items":            "sales_order_items",
+    "outbound_delivery_headers":    "outbound_delivery_headers",
+    "outbound_delivery_items":      "outbound_delivery_items",
+    "billing_document_headers":     "billing_document_headers",
+    "billing_document_items":       "billing_document_items",
+    "payments_accounts_receivable": "payments_accounts_receivable",
 }
 
+conn = sqlite3.connect(DB)
 
 for folder, table in TABLE_MAP.items():
-    load_folder(folder, table)
+    folder_path = os.path.join(DATA_DIR, folder)
+    files = glob.glob(f"{folder_path}/*.jsonl")
+
+    if not files:
+        print(f"⚠️  No files found for {table} at {folder_path}")
+        continue
+
+    rows = []
+    for f in files:
+        with open(f) as fp:
+            for line in fp:
+                line = line.strip()
+                if line:
+                    rows.append(json.loads(line))
+
+    if not rows:
+        print(f"⚠️  No data for {table}")
+        continue
+
+    # Flatten nested dicts (e.g. creationTime)
+    flat_rows = []
+    for r in rows:
+        flat = {k: str(v) if isinstance(v, dict) else v for k, v in r.items()}
+        flat_rows.append(flat)
+
+    keys = list(flat_rows[0].keys())
+    cols = ", ".join(keys)
+    placeholders = ", ".join(["?" for _ in keys])
+
+    conn.execute(f"DROP TABLE IF EXISTS {table}")
+    conn.execute(f"CREATE TABLE {table} ({', '.join(keys)})")
+    conn.executemany(
+        f"INSERT INTO {table} ({cols}) VALUES ({placeholders})",
+        [tuple(r.get(k) for k in keys) for r in flat_rows]
+    )
+    conn.commit()
+    print(f"✅ Loaded {len(flat_rows)} rows → {table}")
 
 conn.close()
-
-print("\n🎉 Data Loaded Successfully")
+print("\n✅ Done. Database ready.")
