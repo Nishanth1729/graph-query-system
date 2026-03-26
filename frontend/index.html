@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Graph Query System</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #080b10;
+    --surface: #0e1420;
+    --surface2: #151d2e;
+    --border: #1e2d45;
+    --accent: #00d4ff;
+    --accent2: #7c3aed;
+    --accent3: #10b981;
+    --warn: #f59e0b;
+    --danger: #ef4444;
+    --text: #e2eaf5;
+    --muted: #5a7090;
+    --node-default: #1e3a5f;
+    --node-highlight: #00d4ff;
+    --link: #1e2d45;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    height: 100vh;
+    display: grid;
+    grid-template-rows: 56px 1fr;
+    grid-template-columns: 360px 1fr;
+    overflow: hidden;
+  }
+
+  /* ── HEADER ── */
+  header {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 0 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    position: relative;
+    z-index: 10;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .logo-icon {
+    width: 28px; height: 28px;
+    position: relative;
+  }
+  .logo-icon svg { width: 100%; height: 100%; }
+  .logo-text {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 15px;
+    letter-spacing: 0.04em;
+    color: var(--text);
+  }
+  .logo-text span { color: var(--accent); }
+
+  .header-sep { width: 1px; height: 24px; background: var(--border); margin: 0 8px; }
+
+  .status-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--accent3);
+    box-shadow: 0 0 8px var(--accent3);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%,100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+  .status-label { font-size: 11px; color: var(--muted); letter-spacing: 0.06em; }
+
+  .header-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+
+  .api-badge {
+    font-size: 10px;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 3px 8px;
+    letter-spacing: 0.08em;
+  }
+
+  .btn-load-graph {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    background: transparent;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    padding: 5px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    letter-spacing: 0.06em;
+    transition: all 0.2s;
+  }
+  .btn-load-graph:hover {
+    background: var(--accent);
+    color: var(--bg);
+  }
+
+  /* ── SIDEBAR ── */
+  aside {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .panel-label {
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    color: var(--muted);
+    text-transform: uppercase;
+    padding: 14px 18px 10px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+
+  /* Query box */
+  .query-section { padding: 16px; border-bottom: 1px solid var(--border); }
+
+  .query-wrap {
+    position: relative;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    transition: border-color 0.2s;
+  }
+  .query-wrap:focus-within { border-color: var(--accent); }
+
+  textarea {
+    width: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    line-height: 1.6;
+    padding: 12px 14px;
+    resize: none;
+    min-height: 90px;
+  }
+  textarea::placeholder { color: var(--muted); }
+
+  .query-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 12px 8px;
+    border-top: 1px solid var(--border);
+  }
+  .char-count { font-size: 10px; color: var(--muted); }
+
+  .btn-run {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    background: var(--accent);
+    border: none;
+    color: var(--bg);
+    padding: 6px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    letter-spacing: 0.06em;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-run:hover { opacity: 0.85; transform: translateY(-1px); }
+  .btn-run:active { transform: translateY(0); }
+  .btn-run:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  /* SQL box */
+  .sql-section { padding: 16px; border-bottom: 1px solid var(--border); }
+  .sql-label {
+    font-size: 9px; letter-spacing: 0.14em; color: var(--muted);
+    text-transform: uppercase; margin-bottom: 8px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .sql-label::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+  .sql-box {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-size: 11px;
+    line-height: 1.7;
+    color: var(--accent3);
+    min-height: 48px;
+    word-break: break-all;
+    white-space: pre-wrap;
+  }
+  .sql-box.empty { color: var(--muted); font-style: italic; }
+
+  /* Results */
+  .results-section {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .results-inner {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+  }
+
+  /* scrollbar */
+  .results-inner::-webkit-scrollbar { width: 4px; }
+  .results-inner::-webkit-scrollbar-track { background: transparent; }
+  .results-inner::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  .result-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+  }
+  .result-table th {
+    text-align: left;
+    padding: 6px 8px;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    font-size: 10px;
+    text-transform: uppercase;
+  }
+  .result-table td {
+    padding: 6px 8px;
+    border-bottom: 1px solid rgba(30,45,69,0.5);
+    color: var(--text);
+  }
+  .result-table tr:hover td { background: var(--surface2); }
+
+  .result-msg {
+    font-size: 12px;
+    padding: 12px;
+    border-radius: 6px;
+  }
+  .result-msg.error { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); color: #fca5a5; }
+  .result-msg.warn { background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2); color: #fcd34d; }
+  .result-msg.info { background: rgba(0,212,255,0.06); border: 1px solid rgba(0,212,255,0.15); color: var(--accent); }
+
+  .highlight-pill {
+    display: inline-block;
+    background: rgba(0,212,255,0.1);
+    border: 1px solid rgba(0,212,255,0.3);
+    color: var(--accent);
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 99px;
+    margin: 2px;
+  }
+
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    gap: 8px;
+    color: var(--muted);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    text-align: center;
+    padding: 24px;
+  }
+  .empty-state svg { opacity: 0.2; margin-bottom: 8px; }
+
+  /* ── GRAPH CANVAS ── */
+  .graph-area {
+    position: relative;
+    background: var(--bg);
+    overflow: hidden;
+  }
+
+  #graph-svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .graph-empty {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    color: var(--muted);
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    pointer-events: none;
+  }
+  .graph-empty svg { opacity: 0.12; }
+
+  /* Grid overlay */
+  .graph-area::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 40px 40px;
+    opacity: 0.3;
+    pointer-events: none;
+  }
+
+  /* Graph controls */
+  .graph-controls {
+    position: absolute;
+    bottom: 16px;
+    right: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    z-index: 5;
+  }
+  .gc-btn {
+    width: 32px; height: 32px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    transition: all 0.15s;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .gc-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Graph legend */
+  .graph-legend {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: rgba(14,20,32,0.85);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 10px;
+    z-index: 5;
+    backdrop-filter: blur(6px);
+  }
+  .legend-title { color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px; }
+  .legend-item { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; color: var(--text); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+  /* Node tooltip */
+  .tooltip {
+    position: absolute;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 11px;
+    pointer-events: none;
+    z-index: 20;
+    opacity: 0;
+    transition: opacity 0.15s;
+    max-width: 200px;
+    word-break: break-all;
+  }
+  .tooltip.visible { opacity: 1; }
+  .tooltip-id { color: var(--accent); font-weight: 700; margin-bottom: 2px; }
+  .tooltip-label { color: var(--muted); }
+
+  /* Loading spinner */
+  .spinner {
+    width: 16px; height: 16px;
+    border: 2px solid rgba(0,212,255,0.2);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: inline-block;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Animate in */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .fade-up { animation: fadeUp 0.3s ease both; }
+
+  .node-count {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    z-index: 5;
+    display: flex;
+    gap: 12px;
+  }
+  .nc-item { display: flex; align-items: center; gap: 6px; }
+  .nc-val { color: var(--text); font-weight: 700; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="14" cy="7" r="4" fill="#00d4ff" opacity="0.9"/>
+        <circle cx="5" cy="22" r="3.5" fill="#7c3aed" opacity="0.8"/>
+        <circle cx="23" cy="22" r="3.5" fill="#10b981" opacity="0.8"/>
+        <line x1="14" y1="11" x2="5" y2="18.5" stroke="#1e2d45" stroke-width="1.5"/>
+        <line x1="14" y1="11" x2="23" y2="18.5" stroke="#1e2d45" stroke-width="1.5"/>
+        <line x1="8.5" y1="22" x2="19.5" y2="22" stroke="#1e2d45" stroke-width="1.5"/>
+      </svg>
+    </div>
+    <span class="logo-text">Graph<span>Query</span></span>
+  </div>
+  <div class="header-sep"></div>
+  <div class="status-dot"></div>
+  <span class="status-label">LIVE · 127.0.0.1:8001</span>
+  <div class="header-right">
+    <span class="api-badge">REST API</span>
+    <button class="btn-load-graph" onclick="loadGraph()">↻ LOAD GRAPH</button>
+  </div>
+</header>
+
+<!-- SIDEBAR -->
+<aside>
+  <div class="panel-label">Natural Language Query</div>
+
+  <!-- Query input -->
+  <div class="query-section">
+    <div class="query-wrap">
+      <textarea id="queryInput" placeholder="e.g. Show all nodes connected to entity A..." rows="4" oninput="updateCount()"></textarea>
+      <div class="query-footer">
+        <span class="char-count" id="charCount">0 chars</span>
+        <button class="btn-run" id="runBtn" onclick="runQuery()">
+          <span id="runBtnText">▶ RUN</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Generated SQL -->
+  <div class="sql-section">
+    <div class="sql-label">Generated SQL</div>
+    <div class="sql-box empty" id="sqlBox">Awaiting query...</div>
+  </div>
+
+  <!-- Results -->
+  <div class="results-section">
+    <div class="panel-label">Results</div>
+    <div class="results-inner" id="resultsInner">
+      <div class="empty-state">
+        <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+          <rect x="8" y="16" width="32" height="24" rx="3" stroke="#5a7090" stroke-width="1.5"/>
+          <line x1="8" y1="22" x2="40" y2="22" stroke="#5a7090" stroke-width="1.5"/>
+          <line x1="16" y1="16" x2="16" y2="40" stroke="#5a7090" stroke-width="1" opacity="0.5"/>
+          <line x1="24" y1="16" x2="24" y2="40" stroke="#5a7090" stroke-width="1" opacity="0.5"/>
+          <line x1="32" y1="16" x2="32" y2="40" stroke="#5a7090" stroke-width="1" opacity="0.5"/>
+        </svg>
+        Run a query to see results here
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- GRAPH AREA -->
+<div class="graph-area" id="graphArea">
+  <div class="graph-empty" id="graphEmpty">
+    <svg width="72" height="72" viewBox="0 0 72 72" fill="none">
+      <circle cx="36" cy="16" r="8" stroke="#5a7090" stroke-width="1.5"/>
+      <circle cx="14" cy="56" r="7" stroke="#5a7090" stroke-width="1.5"/>
+      <circle cx="58" cy="56" r="7" stroke="#5a7090" stroke-width="1.5"/>
+      <line x1="36" y1="24" x2="14" y2="49" stroke="#5a7090" stroke-width="1.5"/>
+      <line x1="36" y1="24" x2="58" y2="49" stroke="#5a7090" stroke-width="1.5"/>
+      <line x1="21" y1="56" x2="51" y2="56" stroke="#5a7090" stroke-width="1.5"/>
+    </svg>
+    Click "LOAD GRAPH" to visualize the graph
+  </div>
+
+  <svg id="graph-svg"></svg>
+
+  <div class="node-count" id="nodeCount" style="display:none">
+    <div class="nc-item">NODES <span class="nc-val" id="nodeCountVal">0</span></div>
+    <div class="nc-item">EDGES <span class="nc-val" id="edgeCountVal">0</span></div>
+    <div class="nc-item" id="highlightCount" style="display:none">HIGHLIGHTED <span class="nc-val" id="highlightCountVal">0</span></div>
+  </div>
+
+  <div class="graph-legend" id="graphLegend" style="display:none">
+    <div class="legend-title">Legend</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#1e3a5f;border:1.5px solid #2d5a8e"></div> Node</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#00d4ff;box-shadow:0 0 6px #00d4ff88"></div> Highlighted</div>
+  </div>
+
+  <div class="graph-controls">
+    <button class="gc-btn" onclick="zoomIn()" title="Zoom In">+</button>
+    <button class="gc-btn" onclick="zoomOut()" title="Zoom Out">−</button>
+    <button class="gc-btn" onclick="resetZoom()" title="Reset" style="font-size:12px">⌂</button>
+  </div>
+
+  <div class="tooltip" id="tooltip">
+    <div class="tooltip-id" id="tip-id"></div>
+    <div class="tooltip-label" id="tip-label"></div>
+  </div>
+</div>
+
+<script>
+const API = 'http://127.0.0.1:8001';
+let simulation, svgEl, zoomBehavior, gEl;
+let graphNodes = [], graphLinks = [];
+let highlightSet = new Set();
+
+// ── CHAR COUNT ──
+function updateCount() {
+  const v = document.getElementById('queryInput').value;
+  document.getElementById('charCount').textContent = v.length + ' chars';
+}
+
+// ── LOAD GRAPH ──
+async function loadGraph() {
+  const btn = document.querySelector('.btn-load-graph');
+  btn.textContent = '⟳ Loading...';
+  btn.disabled = true;
+  try {
+    const res = await fetch(`${API}/graph`);
+    const data = await res.json();
+    renderGraph(data);
+  } catch (e) {
+    alert('Could not reach API at ' + API + '\n' + e.message);
+  } finally {
+    btn.textContent = '↻ LOAD GRAPH';
+    btn.disabled = false;
+  }
+}
+
+// ── RUN QUERY ──
+async function runQuery() {
+  const q = document.getElementById('queryInput').value.trim();
+  if (!q) return;
+
+  const btn = document.getElementById('runBtn');
+  const btnText = document.getElementById('runBtnText');
+  btn.disabled = true;
+  btnText.innerHTML = '<span class="spinner"></span>';
+
+  document.getElementById('sqlBox').textContent = 'Generating SQL...';
+  document.getElementById('sqlBox').classList.remove('empty');
+
+  try {
+    const res = await fetch(`${API}/query`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: q })
+    });
+    const data = await res.json();
+    handleQueryResult(data);
+  } catch (e) {
+    showResultMsg('Could not reach API: ' + e.message, 'error');
+    document.getElementById('sqlBox').textContent = 'Error';
+    document.getElementById('sqlBox').classList.add('empty');
+  } finally {
+    btn.disabled = false;
+    btnText.innerHTML = '▶ RUN';
+  }
+}
+
+function handleQueryResult(data) {
+  // SQL
+  const sqlBox = document.getElementById('sqlBox');
+  if (data.sql) {
+    sqlBox.textContent = data.sql;
+    sqlBox.classList.remove('empty');
+  } else {
+    sqlBox.textContent = 'No SQL generated';
+    sqlBox.classList.add('empty');
+  }
+
+  // If plain message (guardrail or error)
+  if (!data.columns && data.response) {
+    showResultMsg(data.response, data.response.toLowerCase().includes('only') ? 'warn' : 'info');
+    return;
+  }
+
+  // Highlights
+  highlightSet = new Set(data.highlight_nodes || []);
+  applyHighlights();
+
+  const hCount = document.getElementById('highlightCount');
+  const hVal = document.getElementById('highlightCountVal');
+  if (highlightSet.size > 0) {
+    hCount.style.display = '';
+    hVal.textContent = highlightSet.size;
+  } else {
+    hCount.style.display = 'none';
+  }
+
+  // Table
+  if (data.columns && data.result) {
+    renderTable(data.columns, data.result);
+  } else {
+    showResultMsg('Query returned no results.', 'info');
+  }
+}
+
+function showResultMsg(msg, type = 'info') {
+  const el = document.getElementById('resultsInner');
+  el.innerHTML = `<div class="result-msg ${type} fade-up">${escapeHtml(msg)}</div>`;
+}
+
+function renderTable(cols, rows) {
+  const el = document.getElementById('resultsInner');
+  if (!rows.length) {
+    el.innerHTML = `<div class="result-msg info fade-up">Query returned 0 rows.</div>`;
+    return;
+  }
+  let html = `<table class="result-table fade-up"><thead><tr>`;
+  cols.forEach(c => { html += `<th>${escapeHtml(c)}</th>`; });
+  html += '</tr></thead><tbody>';
+  rows.forEach(row => {
+    html += '<tr>';
+    row.forEach(cell => { html += `<td>${escapeHtml(String(cell ?? ''))}</td>`; });
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  el.innerHTML = html;
+}
+
+function escapeHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── GRAPH RENDER ──
+function renderGraph(data) {
+  // Expect { nodes: [{id, label, ...}], edges: [{source, target, ...}] }
+  // or { nodes: [...], links: [...] }
+  const nodes = data.nodes || [];
+  const links = data.edges || data.links || [];
+
+  graphNodes = nodes;
+  graphLinks = links;
+
+  document.getElementById('graphEmpty').style.display = 'none';
+  document.getElementById('nodeCount').style.display = '';
+  document.getElementById('graphLegend').style.display = '';
+  document.getElementById('nodeCountVal').textContent = nodes.length;
+  document.getElementById('edgeCountVal').textContent = links.length;
+
+  const container = document.getElementById('graphArea');
+  const W = container.clientWidth;
+  const H = container.clientHeight;
+
+  svgEl = d3.select('#graph-svg');
+  svgEl.selectAll('*').remove();
+
+  zoomBehavior = d3.zoom().scaleExtent([0.1, 4]).on('zoom', e => {
+    gEl.attr('transform', e.transform);
+  });
+  svgEl.call(zoomBehavior);
+
+  gEl = svgEl.append('g');
+
+  // Arrow marker
+  svgEl.append('defs').append('marker')
+    .attr('id', 'arrowhead')
+    .attr('viewBox', '-0 -5 10 10')
+    .attr('refX', 20)
+    .attr('refY', 0)
+    .attr('orient', 'auto')
+    .attr('markerWidth', 6)
+    .attr('markerHeight', 6)
+    .append('path')
+    .attr('d', 'M 0,-5 L 10,0 L 0,5')
+    .attr('fill', '#2d5a8e');
+
+  // Links
+  const link = gEl.append('g').selectAll('line')
+    .data(links).enter().append('line')
+    .attr('stroke', '#1e2d45')
+    .attr('stroke-width', 1.5)
+    .attr('marker-end', 'url(#arrowhead)');
+
+  // Nodes
+  const node = gEl.append('g').selectAll('g')
+    .data(nodes).enter().append('g')
+    .attr('class', 'node-g')
+    .style('cursor', 'pointer')
+    .call(d3.drag()
+      .on('start', dragStart)
+      .on('drag', dragging)
+      .on('end', dragEnd));
+
+  node.append('circle')
+    .attr('r', 14)
+    .attr('fill', d => highlightSet.has(d.id) ? '#00d4ff' : '#1e3a5f')
+    .attr('stroke', d => highlightSet.has(d.id) ? '#00d4ff' : '#2d5a8e')
+    .attr('stroke-width', 1.5)
+    .style('filter', d => highlightSet.has(d.id) ? 'drop-shadow(0 0 6px #00d4ff88)' : 'none');
+
+  node.append('text')
+    .attr('text-anchor', 'middle')
+    .attr('dy', '0.35em')
+    .attr('fill', '#e2eaf5')
+    .attr('font-family', 'JetBrains Mono')
+    .attr('font-size', '8px')
+    .text(d => String(d.label || d.id || '').slice(0, 6));
+
+  // Tooltip
+  const tooltip = document.getElementById('tooltip');
+  node.on('mouseover', function(event, d) {
+    tooltip.classList.add('visible');
+    document.getElementById('tip-id').textContent = 'ID: ' + d.id;
+    document.getElementById('tip-label').textContent = d.label ? 'Label: ' + d.label : '';
+  }).on('mousemove', function(event) {
+    const rect = document.getElementById('graphArea').getBoundingClientRect();
+    tooltip.style.left = (event.clientX - rect.left + 12) + 'px';
+    tooltip.style.top = (event.clientY - rect.top - 10) + 'px';
+  }).on('mouseout', function() {
+    tooltip.classList.remove('visible');
+  });
+
+  // Simulation
+  simulation = d3.forceSimulation(nodes)
+    .force('link', d3.forceLink(links).id(d => d.id).distance(80))
+    .force('charge', d3.forceManyBody().strength(-200))
+    .force('center', d3.forceCenter(W / 2, H / 2))
+    .force('collision', d3.forceCollide(20))
+    .on('tick', () => {
+      link
+        .attr('x1', d => d.source.x).attr('y1', d => d.source.y)
+        .attr('x2', d => d.target.x).attr('y2', d => d.target.y);
+      node.attr('transform', d => `translate(${d.x},${d.y})`);
+    });
+}
+
+function applyHighlights() {
+  if (!gEl) return;
+  gEl.selectAll('.node-g circle')
+    .attr('fill', d => highlightSet.has(d.id) ? '#00d4ff' : '#1e3a5f')
+    .attr('stroke', d => highlightSet.has(d.id) ? '#00d4ff' : '#2d5a8e')
+    .style('filter', d => highlightSet.has(d.id) ? 'drop-shadow(0 0 8px #00d4ffaa)' : 'none');
+}
+
+// Drag
+function dragStart(event, d) {
+  if (!event.active) simulation.alphaTarget(0.3).restart();
+  d.fx = d.x; d.fy = d.y;
+}
+function dragging(event, d) { d.fx = event.x; d.fy = event.y; }
+function dragEnd(event, d) {
+  if (!event.active) simulation.alphaTarget(0);
+  d.fx = null; d.fy = null;
+}
+
+// Zoom controls
+function zoomIn() { svgEl.transition().call(zoomBehavior.scaleBy, 1.4); }
+function zoomOut() { svgEl.transition().call(zoomBehavior.scaleBy, 0.7); }
+function resetZoom() {
+  svgEl.transition().call(zoomBehavior.transform, d3.zoomIdentity);
+}
+
+// Enter key
+document.getElementById('queryInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) runQuery();
+});
+</script>
+</body>
+</html>
